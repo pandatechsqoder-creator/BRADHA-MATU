@@ -1,0 +1,4 @@
+External ID,Type,Stock Location,Occurred At,Reference,SKU,Quantity,Batch,Expires
+EXT-UI-1,purchase,Aisle 1,2026-11-10 12:00:00,GRN-UI-1,OIL-1L,10,,
+EXT-UI-1,purchase,Aisle 1,2026-11-10 12:00:00,GRN-UI-1,SUG-1KG,20,,
+EXT-UI-2,sale,Aisle 1,2026-11-10 15:00:00,POS-UI-2,UNKNOWN-SKU,2,,

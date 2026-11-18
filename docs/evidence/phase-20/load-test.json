@@ -1,0 +1,17 @@
+{
+  "target": "http://127.0.0.1:8010/api/v1/health, http://127.0.0.1:8011/api/v1/health, http://127.0.0.1:8012/api/v1/health, http://127.0.0.1:8013/api/v1/health",
+  "requests": 400,
+  "concurrency": 16,
+  "duration_seconds": 154.53,
+  "throughput_rps": 2.6,
+  "statuses": {
+    "200": 400
+  },
+  "latency_ms": {
+    "min": 1140.8,
+    "p50": 6062.1,
+    "p95": 7182.7,
+    "p99": 9235.1,
+    "max": 9911.6
+  }
+}

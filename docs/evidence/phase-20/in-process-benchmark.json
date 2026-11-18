@@ -1,0 +1,14 @@
+{
+    "endpoint": "GET /api/v1/health",
+    "mode": "in-process (warm framework)",
+    "requests": 300,
+    "duration_seconds": 5.485,
+    "throughput_rps": 54.7,
+    "latency_ms": {
+        "min": 8.6,
+        "p50": 13.57,
+        "p95": 33.2,
+        "p99": 124.12,
+        "max": 404.66
+    }
+}

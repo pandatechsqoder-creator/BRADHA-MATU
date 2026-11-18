@@ -1,0 +1,82 @@
++--------------------+--------+---------------------------------------------------------------------------------------------------------------------------------------------+
+|[32m Check              [39m|[32m Status [39m|[32m Detail                                                                                                                                      [39m|
++--------------------+--------+---------------------------------------------------------------------------------------------------------------------------------------------+
+| environment        | WARN   | Running in local; production-only checks are not enforced here.                                                                             |
+| indexing           | OK     | Indexing is disabled outside production.                                                                                                    |
+| homepage           | OK     | A published home page exists.                                                                                                               |
+| published_pages    | OK     | 35 published page(s) are live.                                                                                                              |
+| published_articles | OK     | 3 published article(s).                                                                                                                     |
+| contact_details    | FAIL   | No contact email or phone is configured; the public site shows a pending state and launch is blocked until the owner confirms real details. |
+| google_connection  | WARN   | Google is not connected; the workspace shows setup-required.                                                                                |
+| meta_connection    | WARN   | Meta is not connected; the workspace shows setup-required.                                                                                  |
+| search_console     | WARN   | No Search Console property is synced.                                                                                                       |
+| ga4                | WARN   | No GA4 property is synced.                                                                                                                  |
+| backups            | OK     | Latest backup is 0 hour(s) old at backups/phase14-drill.json.gz.                                                                            |
+| outbound_provider  | WARN   | No email/SMS/WhatsApp provider is approved; outbound automation steps stay blocked by design.                                               |
++--------------------+--------+---------------------------------------------------------------------------------------------------------------------------------------------+
+{
+    "status": "not_ready",
+    "checks": [
+        {
+            "name": "environment",
+            "status": "warn",
+            "message": "Running in local; production-only checks are not enforced here."
+        },
+        {
+            "name": "indexing",
+            "status": "ok",
+            "message": "Indexing is disabled outside production."
+        },
+        {
+            "name": "homepage",
+            "status": "ok",
+            "message": "A published home page exists."
+        },
+        {
+            "name": "published_pages",
+            "status": "ok",
+            "message": "35 published page(s) are live."
+        },
+        {
+            "name": "published_articles",
+            "status": "ok",
+            "message": "3 published article(s)."
+        },
+        {
+            "name": "contact_details",
+            "status": "fail",
+            "message": "No contact email or phone is configured; the public site shows a pending state and launch is blocked until the owner confirms real details."
+        },
+        {
+            "name": "google_connection",
+            "status": "warn",
+            "message": "Google is not connected; the workspace shows setup-required."
+        },
+        {
+            "name": "meta_connection",
+            "status": "warn",
+            "message": "Meta is not connected; the workspace shows setup-required."
+        },
+        {
+            "name": "search_console",
+            "status": "warn",
+            "message": "No Search Console property is synced."
+        },
+        {
+            "name": "ga4",
+            "status": "warn",
+            "message": "No GA4 property is synced."
+        },
+        {
+            "name": "backups",
+            "status": "ok",
+            "message": "Latest backup is 0 hour(s) old at backups/phase14-drill.json.gz."
+        },
+        {
+            "name": "outbound_provider",
+            "status": "warn",
+            "message": "No email/SMS/WhatsApp provider is approved; outbound automation steps stay blocked by design."
+        }
+    ],
+    "time": "2026-11-17T16:59:14+00:00"
+}

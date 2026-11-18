@@ -1,0 +1,35 @@
+# Dependencies
+/backend/vendor/
+/backend/ACESSES TOKEN
+/frontend/node_modules/
+
+# Environment & secrets
+/backend/.env
+/frontend/.env
+/frontend/.env.*
+!/frontend/.env.example
+
+# Build output
+/frontend/dist/
+/backend/public/build/
+
+# Laravel
+/backend/storage/*.key
+/backend/storage/framework/cache/data/*
+/backend/storage/framework/sessions/*
+/backend/storage/framework/views/*
+/backend/storage/logs/*
+/backend/database/database.sqlite
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Test output
+/frontend/coverage/
+/frontend/test-results/
+/frontend/playwright-report/
+/backend/.phpunit.cache/
+/tmp/

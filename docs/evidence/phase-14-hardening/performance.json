@@ -1,0 +1,18 @@
+{
+  "home": {
+    "ttfb_ms": 1224,
+    "dom_content_loaded_ms": 1629,
+    "load_ms": 1629,
+    "resource_requests": 2,
+    "resource_transfer_bytes": 28809,
+    "html_bytes": 48613
+  },
+  "quote": {
+    "ttfb_ms": 982,
+    "dom_content_loaded_ms": 2312,
+    "load_ms": 2317,
+    "resource_requests": 2,
+    "resource_transfer_bytes": 28809,
+    "html_bytes": 33280
+  }
+}
