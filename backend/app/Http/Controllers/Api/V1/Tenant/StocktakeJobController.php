@@ -185,7 +185,12 @@ final class StocktakeJobController extends Controller
             'request_declaration.exceptions' => ['nullable', 'string', 'max:2000'],
         ]);
         $declarationData = $validated['request_declaration'];
-        $requests->declareRequest($job, $request->user(), $declarationData, $request->userAgent(), $request->ip());
+        $declaration = $requests->declareRequest($job, $request->user(), $declarationData, $request->userAgent(), $request->ip());
+        $audit->log('stocktake.request.declared', $declaration, null, null, [
+            'revision' => $declaration->revision,
+            'catalogue_version_id' => $declaration->catalogue_version_id,
+            'request_snapshot' => $declaration->request_snapshot,
+        ], $tenant->id);
 
         if ($job->status === 'draft') {
             $requirement = $deposits->requirement($job);

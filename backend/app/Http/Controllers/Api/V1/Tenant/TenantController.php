@@ -37,12 +37,11 @@ final class TenantController extends Controller
         StoreTenantRequest $request,
         AuditLogger $audit,
         DefaultHeadOfficeProvisioner $headOffice,
-    ): JsonResponse
-    {
+    ): JsonResponse {
         /** @var User $user */
         $user = $request->user();
 
-        $tenant = DB::transaction(function () use ($request, $user): Tenant {
+        $tenant = DB::transaction(function () use ($request, $user, $headOffice): Tenant {
             $tenant = Tenant::create([
                 ...$request->validated(),
                 'created_by' => $user->id,

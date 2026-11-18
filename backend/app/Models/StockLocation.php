@@ -14,6 +14,11 @@ class StockLocation extends Model
 
     protected $guarded = [];
 
+    protected function casts(): array
+    {
+        return ['is_default' => 'boolean'];
+    }
+
     public function branch(): BelongsTo
     {
         return $this->belongsTo(Branch::class);

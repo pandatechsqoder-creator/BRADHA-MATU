@@ -517,6 +517,43 @@ export function PlatformStocktakeJobPage() {
             {data.description && <p className="mt-3 rounded-lg bg-gray-50 p-3 text-sm text-gray-600">{data.description}</p>}
           </Card>
 
+          {data.request_declaration && (
+            <Card title="Request-specific declaration">
+              <p className="text-sm text-gray-700">{data.request_declaration.declaration_text}</p>
+              <dl className="mt-3 space-y-2 text-sm">
+                <SummaryRow label="Revision">{data.request_declaration.revision}</SummaryRow>
+                <SummaryRow label="Catalogue version">
+                  {data.request_declaration.catalogue_version_number ?? '—'}
+                </SummaryRow>
+                <SummaryRow label="Declared by">{data.request_declaration.declared_by ?? '—'}</SummaryRow>
+                <SummaryRow label="Accepted">
+                  {data.request_declaration.accepted_at
+                    ? formatDateTime(data.request_declaration.accepted_at)
+                    : '—'}
+                </SummaryRow>
+              </dl>
+              {data.request_declaration.exceptions && (
+                <p className="mt-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
+                  Exceptions: {data.request_declaration.exceptions}
+                </p>
+              )}
+              {data.request_declaration_history.length > 1 && (
+                <ul className="mt-3 space-y-2 border-t border-gray-100 pt-3">
+                  {data.request_declaration_history.slice(1).map((declaration) => (
+                    <li key={declaration.id} className="text-xs text-gray-600">
+                      <p className="font-medium">Revision {declaration.revision}</p>
+                      <p>
+                        {declaration.declared_by ?? 'Unknown'} ·{' '}
+                        {declaration.accepted_at ? formatDateTime(declaration.accepted_at) : '—'}
+                      </p>
+                      {declaration.exceptions && <p>Exceptions: {declaration.exceptions}</p>}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Card>
+          )}
+
           <Card title="Requirements">
             <dl className="space-y-2 text-sm">
               {[

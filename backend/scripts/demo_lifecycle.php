@@ -10,7 +10,6 @@ declare(strict_types=1);
  *
  * Usage: php scripts/demo_lifecycle.php
  */
-
 $base = getenv('API_BASE') ?: 'http://127.0.0.1:8000/api/v1';
 $tenantUuid = getenv('DEMO_TENANT') ?: '01M78B8C1J3HRW14MB5FB2PATA';
 

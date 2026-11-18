@@ -81,10 +81,12 @@ final class DefaultHeadOfficeProvisioner
                 ]);
             }
 
-            Branch::query()->where('tenant_id', $tenant->id)->update(['is_default' => false]);
-            $branch->update(['is_default' => true]);
-            StockLocation::query()->where('tenant_id', $tenant->id)->update(['is_default' => false]);
-            $location->update(['is_default' => true]);
+            DB::table('branches')->where('tenant_id', $tenant->id)->update(['is_default' => false]);
+            DB::table('branches')->where('tenant_id', $tenant->id)->where('id', $branch->id)
+                ->update(['is_default' => true]);
+            DB::table('stock_locations')->where('tenant_id', $tenant->id)->update(['is_default' => false]);
+            DB::table('stock_locations')->where('tenant_id', $tenant->id)->where('id', $location->id)
+                ->update(['is_default' => true]);
 
             return ['branch' => $branch->fresh(), 'location' => $location->fresh()];
         });
@@ -92,8 +94,14 @@ final class DefaultHeadOfficeProvisioner
 
     private function makeDefaultBranch(Tenant $tenant, Branch $branch): array
     {
-        Branch::query()->where('tenant_id', $tenant->id)->update(['is_default' => false]);
-        $branch->update(['is_default' => true]);
+        if ($branch->status !== 'active') {
+            $branch->update(['status' => 'active']);
+        }
+
+        DB::table('branches')->where('tenant_id', $tenant->id)->update(['is_default' => false]);
+        DB::table('branches')->where('tenant_id', $tenant->id)->where('id', $branch->id)
+            ->update(['is_default' => true]);
+        $branch->refresh();
 
         $location = StockLocation::query()
             ->where('tenant_id', $tenant->id)
@@ -130,8 +138,9 @@ final class DefaultHeadOfficeProvisioner
             $location->update(['status' => 'active']);
         }
 
-        StockLocation::query()->where('tenant_id', $tenant->id)->update(['is_default' => false]);
-        $location->update(['is_default' => true]);
+        DB::table('stock_locations')->where('tenant_id', $tenant->id)->update(['is_default' => false]);
+        DB::table('stock_locations')->where('tenant_id', $tenant->id)->where('id', $location->id)
+            ->update(['is_default' => true]);
 
         return ['branch' => $branch->fresh(), 'location' => $location->fresh()];
     }

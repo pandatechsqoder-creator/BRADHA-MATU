@@ -178,6 +178,7 @@ export const branchSchema = z.object({
   email: z.string().nullable(),
   timezone: z.string(),
   status: z.string(),
+  is_default: z.boolean().default(false),
   departments_count: z.number().default(0),
   warehouses_count: z.number().default(0),
   locations_count: z.number().default(0),

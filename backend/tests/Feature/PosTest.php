@@ -112,6 +112,34 @@ class PosTest extends TestCase
                 'base_unit' => 'piece',
             ])
             ->assertCreated();
+        $otherBranch = \App\Models\Branch::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Eastlands',
+            'status' => 'active',
+        ]);
+        $otherLocation = StockLocation::create([
+            'tenant_id' => $tenant->id,
+            'branch_id' => $otherBranch->id,
+            'name' => 'Eastlands stock',
+        ]);
+        $branchOnlyProduct = $this->as($owner, $tenant)
+            ->postJson("/api/v1/tenants/{$tenant->uuid}/products", [
+                'name' => 'Sugar Powder',
+                'sku' => 'SUG-POWDER',
+                'brand' => 'Other Brand',
+                'category' => 'Dry Goods',
+                'base_unit' => 'piece',
+            ])
+            ->assertCreated()
+            ->json('data');
+        $branchOnlyVariant = ProductVariant::where('uuid', $branchOnlyProduct['variants'][0]['id'])->firstOrFail();
+        InventoryBalance::create([
+            'tenant_id' => $tenant->id,
+            'branch_id' => $otherBranch->id,
+            'stock_location_id' => $otherLocation->id,
+            'variant_id' => $branchOnlyVariant->id,
+            'quantity' => 3,
+        ]);
 
         $this->as($owner, $tenant)
             ->getJson("/api/v1/tenants/{$tenant->uuid}/pos/products?terminal_id={$terminal['id']}&search=Sugar&per_page=1")
@@ -119,6 +147,7 @@ class PosTest extends TestCase
             ->assertJsonCount(1, 'data.products')
             ->assertJsonPath('data.pagination.total', 2)
             ->assertJsonPath('data.pagination.last_page', 2)
+            ->assertJsonPath('data.products.0.name', 'Sugar 1kg')
             ->assertJsonPath('data.terminal_id', $terminal['id'])
             ->assertJsonPath('data.branch_id', $branch->uuid);
 
@@ -154,7 +183,7 @@ class PosTest extends TestCase
             ->postJson("/api/v1/tenants/{$tenant->uuid}/pos/terminals/{$terminal['id']}/shifts/open", [])
             ->assertCreated();
 
-        $this->as($owner, $tenant)
+        $rejectedPrice = $this->as($owner, $tenant)
             ->postJson("/api/v1/tenants/{$tenant->uuid}/pos/sales", [
                 'terminal_id' => $terminal['id'],
                 'items' => [[
@@ -163,8 +192,8 @@ class PosTest extends TestCase
                     'unit_price' => 1,
                 ]],
             ])
-            ->assertStatus(422)
-            ->assertJsonPath('error.details.items.0', 'The items.0.unit_price field is prohibited.');
+            ->assertStatus(422);
+        $this->assertArrayHasKey('items.0.unit_price', $rejectedPrice->json('error.details'));
 
         $sale = $this->as($owner, $tenant)
             ->postJson("/api/v1/tenants/{$tenant->uuid}/pos/sales", [
@@ -366,6 +395,7 @@ class PosTest extends TestCase
                 'status' => 'received',
                 'items' => [[
                     'variant_id' => $variant,
+                    'product_name' => 'Sugar 1kg',
                     'quantity' => 10,
                     'unit_cost' => 90,
                 ]],

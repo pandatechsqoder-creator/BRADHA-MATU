@@ -8,9 +8,9 @@ use App\Models\Invitation;
 use App\Models\StockLocation;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\Tenancy\DefaultHeadOfficeProvisioner;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use App\Services\Tenancy\DefaultHeadOfficeProvisioner;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -78,17 +78,17 @@ class OrganisationTest extends TestCase
 
     public function test_new_tenants_receive_default_head_office_and_defaults_can_be_changed_safely(): void
     {
-        $tenant = Tenant::create(['name' => 'Acme Retail', 'status' => 'active']);
-        $owner = $this->memberOf($tenant);
+        $owner = User::factory()->create();
         $otherTenant = Tenant::create(['name' => 'Other business', 'status' => 'active']);
         app(DefaultHeadOfficeProvisioner::class)->provision($otherTenant);
         $otherDefault = Branch::where('tenant_id', $otherTenant->id)->where('is_default', true)->firstOrFail();
 
-        $created = $this->as($owner, $tenant)->postJson('/api/v1/tenants', [
+        $created = $this->withToken($owner->createToken('test')->plainTextToken)->postJson('/api/v1/tenants', [
             'name' => 'New organisation',
             'timezone' => 'Africa/Nairobi',
         ])->assertCreated()->json('data');
         $createdTenant = Tenant::where('uuid', $created['id'])->firstOrFail();
+        $tenant = $createdTenant;
         $headOffice = Branch::where('tenant_id', $createdTenant->id)->where('is_default', true)->firstOrFail();
         $defaultLocation = StockLocation::where('tenant_id', $createdTenant->id)->where('is_default', true)->firstOrFail();
 

@@ -13,6 +13,11 @@ class Branch extends Model
 
     protected $guarded = [];
 
+    protected function casts(): array
+    {
+        return ['is_default' => 'boolean'];
+    }
+
     public function departments(): HasMany
     {
         return $this->hasMany(Department::class);

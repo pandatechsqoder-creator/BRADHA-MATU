@@ -6,6 +6,7 @@ use App\Models\Payment;
 use App\Models\StocktakeJob;
 use App\Models\StocktakeJobAmendment;
 use App\Models\StocktakeQuote;
+use App\Models\StocktakeRequestDeclaration;
 use App\Models\StocktakeStatusHistory;
 use App\Models\User;
 use App\Services\Payments\PaymentService;
@@ -123,6 +124,9 @@ final class StocktakePresenter
      */
     private function base(StocktakeJob $job, User $viewer): array
     {
+        $declarations = $job->requestDeclarations;
+        $latestDeclaration = $declarations->first();
+
         return [
             'id' => $job->uuid,
             'reference' => $job->reference,
@@ -163,15 +167,10 @@ final class StocktakePresenter
                 'version_number' => $job->catalogueVersion?->version_number,
                 'product_count' => $job->catalogue_product_count,
             ],
-            'request_declaration' => $job->requestDeclarations->first() ? [
-                'id' => $job->requestDeclarations->first()->uuid,
-                'revision' => $job->requestDeclarations->first()->revision,
-                'declaration_text' => $job->requestDeclarations->first()->declaration_text,
-                'exceptions' => $job->requestDeclarations->first()->exceptions,
-                'accepted_at' => $job->requestDeclarations->first()->accepted_at?->toIso8601String(),
-                'declared_by' => $job->requestDeclarations->first()->declaredBy?->name,
-                'catalogue_version_number' => $job->requestDeclarations->first()->catalogueVersion?->version_number,
-            ] : null,
+            'request_declaration' => $latestDeclaration ? $this->requestDeclarationPayload($latestDeclaration) : null,
+            'request_declaration_history' => $declarations->map(
+                fn ($declaration) => $this->requestDeclarationPayload($declaration),
+            )->values()->all(),
             'inventory_snapshot' => $job->inventorySnapshot ? [
                 'id' => $job->inventorySnapshot->uuid,
                 'reference' => $job->inventorySnapshot->reference,
@@ -370,6 +369,22 @@ final class StocktakePresenter
             'can_decide_amendment' => $canReview && $job->amendments->contains(fn (StocktakeJobAmendment $amendment) => $amendment->status === 'pending'),
             'can_approve_execution' => $canReview && $job->status === 'awaiting_balance_payment' && $quote !== null,
             'can_send_information_request' => $canReview && $job->status === 'under_review',
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function requestDeclarationPayload(StocktakeRequestDeclaration $declaration): array
+    {
+        return [
+            'id' => $declaration->uuid,
+            'revision' => $declaration->revision,
+            'declaration_text' => $declaration->declaration_text,
+            'exceptions' => $declaration->exceptions,
+            'accepted_at' => $declaration->accepted_at?->toIso8601String(),
+            'declared_by' => $declaration->declaredBy?->name,
+            'catalogue_version_number' => $declaration->catalogueVersion?->version_number,
         ];
     }
 }

@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\Finance\LedgerService;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 class FinanceTest extends TestCase
@@ -134,7 +135,7 @@ class FinanceTest extends TestCase
             ->json('data');
     }
 
-    private function signedCallback(array $payload): \Illuminate\Testing\TestResponse
+    private function signedCallback(array $payload): TestResponse
     {
         $raw = json_encode($payload);
         $signature = hash_hmac('sha256', $raw, (string) config('payments.callbacks.sandbox_secret'));

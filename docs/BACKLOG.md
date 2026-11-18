@@ -138,10 +138,10 @@ extended in place:
   matching edit controls.
 - Inventory balance search is paginated and supports product name/SKU, but lacks the requested
   letter, branch, warehouse, category and stock-state filters.
-- Product and variant schemas have cost price and variant attributes, but no authoritative product
-  selling-price field. POS checkout currently accepts the submitted unit price, so server-side
-  pricing and immutable transaction snapshots need implementation before treating POS prices as
-  production-authoritative.
+- Product and variant schemas have no dedicated selling-price column; existing variant attributes
+  support configured `retail_price`, `selling_price`, `unit_price` or `price`. POS now resolves the
+  price from those catalogue values on the server, rejects submitted prices, and persists sale-time
+  unit price, tax, discount and line-total snapshots. Missing catalogue prices block checkout.
 
 Progress:
 
@@ -162,8 +162,9 @@ Progress:
 - [x] Inventory now supports server-side product-name-first search, SKU/barcode/brand/category
   search, A-Z/# filtering, branch, warehouse, category, brand and stock-state filters with
   pagination and tenant-isolation coverage.
-- [ ] Add backend-authoritative selling prices and POS name-first/alphabetical search while
-  preserving cart contents and historical sale prices.
+- [x] Add backend-authoritative selling prices, immutable per-sale financial snapshots, and
+  backend-paginated POS name/SKU/barcode/brand/category search scoped to the tenant and selected
+  terminal branch.
 - [ ] Run end-to-end browser acceptance for all workflows and update evidence after the features
   above are complete.
 

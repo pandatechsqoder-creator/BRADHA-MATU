@@ -137,7 +137,9 @@ function BranchesSection({
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <p className="font-medium text-gray-900">{branch.name}</p>
-                    {branch.is_default && <Badge tone="green">Default Head Office</Badge>}
+                    {branch.is_default && (
+                      <Badge tone="green">{branch.name === 'Head Office' ? 'Default Head Office' : 'Default branch'}</Badge>
+                    )}
                   </div>
                   <p className="text-xs text-gray-500">{branch.code ?? 'No code'}</p>
                 </td>

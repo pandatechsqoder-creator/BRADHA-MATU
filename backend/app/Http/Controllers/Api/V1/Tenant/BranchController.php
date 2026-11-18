@@ -72,7 +72,7 @@ final class BranchController extends Controller
             return $branch->fresh();
         });
 
-        $audit->log('branch.created', $branch, null, null, $branch->only(['name', 'code', 'status']), $tenant->id);
+        $audit->log('branch.created', $branch, null, null, $branch->only(['name', 'code', 'status', 'is_default']), $tenant->id);
 
         return ApiResponse::success($this->payload($branch->loadCount(['departments', 'warehouses', 'stockLocations'])), 201);
     }
@@ -111,6 +111,7 @@ final class BranchController extends Controller
             ]);
         }
 
+        $wasDefault = (bool) $branch->is_default;
         $before = $branch->only(array_keys($data));
         DB::transaction(function () use ($branch, $data, $tenant, $headOffice): void {
             $makeDefault = (bool) ($data['is_default'] ?? false);
@@ -123,7 +124,7 @@ final class BranchController extends Controller
         });
         $branch->refresh();
 
-        if ($branch->wasChanged()) {
+        if ($branch->wasChanged() || $wasDefault !== (bool) $branch->is_default) {
             $audit->log('branch.updated', $branch, null, $before, $branch->only(array_keys($data)), $tenant->id);
         }
 

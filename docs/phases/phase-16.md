@@ -39,11 +39,20 @@ stock snapshots.**
 
 - `lib/api/pos.ts` (Zod schemas + client) and `lib/pos/hooks.ts` (TanStack Query hooks).
 - `features/pos/PosTerminalPage.tsx` — real catalogue search, barcode lookup, variant
-  resolution, editable quantity/price, cash/card/M-Pesa payment, tendered cash and change,
+  resolution, editable quantity with a read-only authoritative selling price, cash/card/M-Pesa
+  payment, tendered cash and change,
   sale + receipt confirmation banner, inline terminal creation and shift opening.
-  - **Fix (2026-11-15):** cart lines now prefill `unit_price` from the variant's
-    `attributes.retail_price` / `selling_price` / `unit_price` / `price`, so catalogue
-    products sell without retyping a price.
+  - **Initial pricing source (2026-11-15):** the terminal began reading variant
+    `attributes.retail_price` / `selling_price` / `unit_price` / `price` for cart display. Pricing
+    authority moved to the backend in the 2026-11-19 follow-up below.
+  - **POS pricing/search follow-up (2026-11-19):** selling prices are now resolved by the backend
+    from those configured variant attributes; the checkout API prohibits client-supplied prices and
+    fails with an explicit catalogue setup error if no price exists. Sale items retain their unit
+    price, tax, discount and line total as transaction-time snapshots. The POS terminal uses the
+    tenant-scoped `/pos/products` search endpoint for name, SKU, barcode, brand and category filters,
+    alphabetical results, pagination, and branch context from the selected terminal. POS tests cover
+    price rejection, missing prices, historical snapshots after a catalogue price edit, scoped
+    search/filters and pagination.
 - `features/pos/PosTerminalsPage.tsx` — create terminals, status badges, open-shift indicator,
   status changes.
 - `features/pos/PosShiftsPage.tsx` — status filter, shift table, close with counted cash,

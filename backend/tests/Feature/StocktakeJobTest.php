@@ -301,6 +301,7 @@ class StocktakeJobTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.request_declaration.revision', 1)
             ->assertJsonPath('data.request_declaration.exceptions', 'Back room excluded by tenant.')
+            ->assertJsonCount(1, 'data.request_declaration_history')
             ->assertJsonPath('data.request_declaration.declared_by', $owner->name);
 
         $this->assertDatabaseHas('stocktake_request_declarations', [
@@ -309,6 +310,7 @@ class StocktakeJobTest extends TestCase
             'revision' => 1,
             'exceptions' => 'Back room excluded by tenant.',
         ]);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'stocktake.request.declared']);
     }
 
     public function test_tenant_override_deposit_policy_and_fixed_platform_policy(): void

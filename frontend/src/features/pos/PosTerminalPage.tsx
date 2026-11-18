@@ -112,6 +112,7 @@ export function PosTerminalPage() {
       )
       return
     }
+    const unitPrice = variant.selling_price
 
     const barcodeValue =
       scannedBarcode ?? variant.barcodes.find((code) => code.is_primary)?.barcode
@@ -135,7 +136,7 @@ export function PosTerminalPage() {
           barcode: barcodeValue,
           quantity: 1,
           unit: variant.base_unit ?? product.base_unit ?? 'pcs',
-          unit_price: variant.selling_price,
+          unit_price: unitPrice,
           tax_amount: 0,
           discount_amount: 0,
         },

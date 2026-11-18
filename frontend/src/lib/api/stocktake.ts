@@ -248,6 +248,7 @@ export const stocktakeBaseJobSchema = z.object({
   attachments: z.array(z.string()).nullable().optional(),
   catalogue: stocktakeCatalogueRefSchema,
   request_declaration: stocktakeRequestDeclarationSchema.nullable().optional(),
+  request_declaration_history: z.array(stocktakeRequestDeclarationSchema).default([]),
   inventory_snapshot: z
     .object({
       id: nullableString,

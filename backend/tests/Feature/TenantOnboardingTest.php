@@ -33,7 +33,14 @@ class TenantOnboardingTest extends TestCase
         $this->getJson("/api/v1/tenants/{$tenant->uuid}/onboarding")
             ->assertOk()
             ->assertJsonPath('data.steps.0.status', 'completed')
-            ->assertJsonPath('data.steps.1.status', 'pending');
+            ->assertJsonPath('data.steps.1.status', 'pending')
+            ->assertJsonPath('data.steps.10.required', true)
+            ->assertJsonPath('data.steps.10.title', 'First stock-taking request');
+
+        $this->patchJson("/api/v1/tenants/{$tenant->uuid}/onboarding/locations", [
+            'action' => 'continue',
+        ])->assertOk()
+            ->assertJsonPath('data.current_step', 'locations');
 
         $this->patchJson("/api/v1/tenants/{$tenant->uuid}/onboarding/departments", [
             'action' => 'skip',

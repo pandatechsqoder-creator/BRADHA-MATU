@@ -67,8 +67,7 @@ final class StockLocationController extends Controller
         Tenant $tenant,
         AuditLogger $audit,
         DefaultHeadOfficeProvisioner $headOffice,
-    ): JsonResponse
-    {
+    ): JsonResponse {
         $this->assertCan($request, $tenant, 'branch.create');
 
         $data = $request->validate([
@@ -108,7 +107,7 @@ final class StockLocationController extends Controller
             return $location;
         });
 
-        $audit->log('stock_location.created', $location, null, null, $location->only(['name', 'code', 'type']), $tenant->id);
+        $audit->log('stock_location.created', $location, null, null, $location->only(['name', 'code', 'type', 'is_default']), $tenant->id);
 
         return ApiResponse::success([
             'id' => $location->uuid,
@@ -129,8 +128,7 @@ final class StockLocationController extends Controller
         StockLocation $stockLocation,
         AuditLogger $audit,
         DefaultHeadOfficeProvisioner $headOffice,
-    ): JsonResponse
-    {
+    ): JsonResponse {
         $this->assertCan($request, $tenant, 'branch.update');
         $this->assertBelongsToTenant($tenant, $stockLocation);
 
@@ -155,6 +153,7 @@ final class StockLocationController extends Controller
             ]);
         }
 
+        $wasDefault = (bool) $stockLocation->is_default;
         $before = $stockLocation->only(array_keys($data));
         DB::transaction(function () use ($data, $tenant, $stockLocation, $headOffice): void {
             if (array_key_exists('warehouse_id', $data)) {
@@ -175,7 +174,7 @@ final class StockLocationController extends Controller
         });
         $stockLocation->refresh();
 
-        if ($stockLocation->wasChanged()) {
+        if ($stockLocation->wasChanged() || $wasDefault !== (bool) $stockLocation->is_default) {
             $audit->log('stock_location.updated', $stockLocation, null, $before, $stockLocation->only(array_keys($data)), $tenant->id);
         }
 

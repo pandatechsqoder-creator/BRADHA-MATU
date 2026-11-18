@@ -63,24 +63,53 @@ final class PosService
                     ->where('status', 'active')
                     ->with(['baseUnit', 'barcodes']),
             ])
-            ->when($filters['search'] ?? null, function ($products, $search): void {
-                $products->where(function ($matches) use ($search): void {
+            ->when($filters['search'] ?? null, function ($products, $search) use ($tenant): void {
+                $products->where(function ($matches) use ($search, $tenant): void {
                     $matches->where('name', 'like', "%{$search}%")
                         ->orWhere('brand', 'like', "%{$search}%")
-                        ->orWhereHas('variants', fn ($variants) => $variants->where('sku', 'like', "%{$search}%"))
-                        ->orWhereHas('barcodes', fn ($barcodes) => $barcodes->where('barcode', 'like', "%{$search}%"));
+                        ->orWhereHas('variants', fn ($variants) => $variants
+                            ->where('tenant_id', $tenant->id)
+                            ->where('sku', 'like', "%{$search}%"))
+                        ->orWhereHas('variants.barcodes', fn ($barcodes) => $barcodes
+                            ->where('tenant_id', $tenant->id)
+                            ->where('barcode', 'like', "%{$search}%"));
                 });
             })
             ->when($filters['brand'] ?? null, fn ($products, $brand) => $products->where('brand', 'like', "%{$brand}%"))
-            ->when($filters['category'] ?? null, function ($products, $category): void {
+            ->when($filters['category'] ?? null, function ($products, $category) use ($tenant): void {
                 $products->whereHas('category', fn ($query) => $query
-                    ->where('uuid', $category)
-                    ->orWhere('name', $category));
+                    ->where('tenant_id', $tenant->id)
+                    ->where(fn ($match) => $match->where('uuid', $category)->orWhere('name', $category)));
             })
             ->whereHas('variants', fn ($variants) => $variants
                 ->where('tenant_id', $tenant->id)
                 ->where('status', 'active'))
             ->orderBy('name');
+
+        if ($terminal->branch_id !== null
+            && InventoryBalance::query()->where('tenant_id', $tenant->id)->whereNotNull('branch_id')->exists()) {
+            $query->where(function ($products) use ($tenant, $terminal): void {
+                $products->whereExists(function ($branchStock) use ($tenant, $terminal): void {
+                    $branchStock->selectRaw('1')
+                        ->from('product_variants as pos_variants')
+                        ->join('inventory_balances as pos_balances', 'pos_balances.variant_id', '=', 'pos_variants.id')
+                        ->whereColumn('pos_variants.product_id', 'products.id')
+                        ->where('pos_variants.tenant_id', $tenant->id)
+                        ->where('pos_balances.tenant_id', $tenant->id)
+                        ->where(function ($scope) use ($terminal): void {
+                            $scope->where('pos_balances.branch_id', $terminal->branch_id)
+                                ->orWhereNull('pos_balances.branch_id');
+                        });
+                })->orWhereNotExists(function ($unstockedProduct) use ($tenant): void {
+                    $unstockedProduct->selectRaw('1')
+                        ->from('product_variants as pos_variants')
+                        ->join('inventory_balances as pos_balances', 'pos_balances.variant_id', '=', 'pos_variants.id')
+                        ->whereColumn('pos_variants.product_id', 'products.id')
+                        ->where('pos_variants.tenant_id', $tenant->id)
+                        ->where('pos_balances.tenant_id', $tenant->id);
+                });
+            });
+        }
 
         $page = $query->paginate($filters['per_page'] ?? 12);
         $products = collect($page->items())->map(function (Product $product): array {
@@ -141,7 +170,7 @@ final class PosService
     {
         $terminal = PosTerminal::create([
             'tenant_id' => $tenant->id,
-            'branch_id' => $this->resolveBranchId($data['branch_id'] ?? null),
+            'branch_id' => $this->resolveBranchId($data['branch_id'] ?? null, $tenant->id),
             'name' => $data['name'],
             'device_id' => $data['device_id'] ?? null,
             'status' => $data['status'] ?? 'active',
@@ -154,7 +183,7 @@ final class PosService
     public function updateTerminal(PosTerminal $terminal, array $data): array
     {
         if (array_key_exists('branch_id', $data)) {
-            $data['branch_id'] = $this->resolveBranchId($data['branch_id']);
+            $data['branch_id'] = $this->resolveBranchId($data['branch_id'], $terminal->tenant_id);
         }
 
         $terminal->update($data);
@@ -506,7 +535,7 @@ final class PosService
         $purchase = PosPurchase::create([
             'tenant_id' => $tenant->id,
             'reference' => 'PUR-' . Str::upper(Str::random(8)),
-            'branch_id' => $this->resolveBranchId($data['branch_id'] ?? null),
+            'branch_id' => $this->resolveBranchId($data['branch_id'] ?? null, $tenant->id),
             'supplier_id' => $supplier->id,
             'user_id' => $user->id,
             'status' => $data['status'] ?? 'received',
@@ -776,8 +805,8 @@ final class PosService
 
     public function createTransfer(Tenant $tenant, array $data, User $user): array
     {
-        $fromBranchId = $this->resolveBranchId($data['from_branch_id']);
-        $toBranchId = $this->resolveBranchId($data['to_branch_id']);
+        $fromBranchId = $this->resolveBranchId($data['from_branch_id'], $tenant->id);
+        $toBranchId = $this->resolveBranchId($data['to_branch_id'], $tenant->id);
 
         if ($fromBranchId === null || $toBranchId === null) {
             throw ValidationException::withMessages(['branch' => ['Both source and destination branches are required.']]);
@@ -968,13 +997,16 @@ final class PosService
         ]);
     }
 
-    private function resolveBranchId(?string $uuid): ?int
+    private function resolveBranchId(?string $uuid, ?int $tenantId = null): ?int
     {
         if ($uuid === null || $uuid === '') {
             return null;
         }
 
-        $id = Branch::where('uuid', $uuid)->value('id');
+        $id = Branch::query()
+            ->where('uuid', $uuid)
+            ->when($tenantId !== null, fn ($query) => $query->where('tenant_id', $tenantId))
+            ->value('id');
         if ($id === null) {
             throw ValidationException::withMessages(['branch_id' => ['Branch not found.']]);
         }
